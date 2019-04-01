@@ -1,0 +1,100 @@
+
+Step 1 :  Download Lighttpd  tar package and copy into any Directory (in example /files/lighttpd) and extract files
+          (/files = can be any directory)
+ 
+ mkdir  -p /files/lighttpd
+ cd /files/lighttpd
+ wget  -O /files/lighttpd/lighttpd-1.4  http://path/lighttpd-1.4
+ tar xf   lighttpd-1.4 
+ cd lighttpd-1.4
+
+
+Step2 :   list files and execute configure file
+              
+              ./configure   
+
+(will show error like  “no acceptable C compiler Found in $PATH”)
+Install GCC compiler and run   ./configure)    
+
+            yum install gcc
+           ./configure
+
+(will show error like “pcre-config not found” install pcre-devel package and run ./configure)
+
+         yum install pcre-devel
+         ./configure
+
+(if no error then proceed to next step otherwise install package which shows up in the error and re run ./configure)
+(Packages need to be installed gcc,pcre-devel zlib-devel,bzip2-devel)
+
+Step3 : execute  “make”      if no error then execute “make install” then goto next step
+       make
+       make Install
+
+
+Step 4 : make lighttpd directory in /etc  and copy lighttpd.conf  & modules.conf
+
+              mkdir  /etc/lighttpd
+              cp  ./doc/config/lighttpd.conf  /etc/lighttpd/lighttpd.conf
+              cp  ./doc/config/modules.conf   /etc/lighttpd/modules.conf
+
+(Make directory conf.d inside /etc/lighttpd and copy all conf.d files from doc directory then goto next step)
+
+ mkdir  /etc/lighttpd/conf.d
+ cp    ./doc/config/conf.d/*  /etc/lighttpd/conf.d/
+
+Step 5 :   add lighttpd user and group.  Then check for syntax error in lighttpd.conf 
+
+useradd  lighttpd  
+lighttpd   -t  –f  /etc/lighttpd/lighttpd.conf
+
+(if syntax ok)
+(Make document root directory as per “lighttpd.conf” default path is “/srv/www/htdocs/”)
+
+mkdir  –p  /srv/www/htdocs
+
+ (create file named as index.html inside “/srv/www/htdocs/” and type webpage content)
+
+ vim /srv/www/htdocs/index.html
+ (“heloo ARK”) save file
+
+Step 6 :  add http in firewall then copy lighttpd.service to “/usr/lib/systemd/system/”
+ 
+ firewall-cmd –add-service=http –permanent
+ firewall-cmd  --reload
+ cp   ./doc/systemd/lighttpd.service   /usr/lib/systemd/system/
+
+(create an error log file inside “/var/log/lighttpd” and change owner as “lighttpd” group “root”)
+ 
+ mkdir /var/log/lighttpd
+ touch /var/log/lighttpd/error.log
+ chown  lighttpd:root /var/log/lighttpd              
+
+Step 7 :  Enable and start lighttpd.service
+
+ systemctl enable lighttpd.service
+ systemctl start lighttpd.service
+
+( if start failed check error  and resolve)
+(Make a link to file /usr/local/sbin/lighttpd  to /usr/sbin/lighttpd)
+
+ ln  –s  /usr/local/sbin/lighttpd   /usr/sbin/lighttpd
+ systemctl restart lighttpd.service
+ systemctl status lighttpd.service
+
+(If its ok check webpage access using “curl”)
+[To check syntax error use below commands]
+
+/usr/sbin/lighttpd  –D  -f /etc/lighttpd/lighttpd.conf
+
+Or
+
+lighttpd –D  -f /etc/lighttpd/lighttpd.conf         (lighttpd = /usr/sbin/lighttpd)
+
+lighttpd  -t  –f  /etc/lighttpd/lighttpd.conf
+
+
+Step 7 : curl  http://localhost  
+
+
+LIGHTTPD Configuration Completed
